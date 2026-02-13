@@ -19,7 +19,7 @@ REM - Opens log folder for easy sharing
 REM 
 REM Safe to run - only reads, does not modify anything.
 REM 
-REM For setup help: https://pythonandvba.com/quicktext
+REM For setup help: https://pythonandvba.com/docs/quicktext/troubleshooting/quicktext-run-kde-connect-diagnostic-tool/
 REM =====================================================
 
 REM CRITICAL: Keep window open no matter what happens
@@ -66,7 +66,7 @@ echo                              Version 1.1
 echo                            By Sven Bosau
 echo ========================================================================
 echo.
-echo  Website: https://pythonandvba.com/quicktext
+echo  Docs: https://pythonandvba.com/docs/quicktext/troubleshooting/quicktext-run-kde-connect-diagnostic-tool/
 echo.
 echo  This tool checks if KDE Connect CLI is properly configured
 echo  for use with QuickText Excel tool.

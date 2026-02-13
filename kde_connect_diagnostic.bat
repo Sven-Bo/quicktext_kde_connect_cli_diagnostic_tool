@@ -630,7 +630,8 @@ echo    In PATH (where)    : !DIAG_WHERE! >> "!LOGFILE!"
 echo.
 echo. >> "!LOGFILE!"
 
-REM Now provide the actual diagnosis
+REM Now provide the actual diagnosis using goto-based branching
+REM (batch cmd.exe does not reliably support else-if chains)
 echo ------------------------------------------------------------------------
 echo  Diagnosis:
 echo ------------------------------------------------------------------------
@@ -639,86 +640,106 @@ echo ---------------------------------------- >> "!LOGFILE!"
 echo.
 echo. >> "!LOGFILE!"
 
-if "!DIAG_DIRECT_VERSION!"=="PASS" (
-    if "!DIAG_DIRECT_LIST!"=="PASS" (
-        echo  [OK] Everything works! CLI is installed and accessible.
-        echo  [OK] Everything works! CLI is installed and accessible. >> "!LOGFILE!"
-        echo.
-        echo. >> "!LOGFILE!"
-        echo  If QuickText still has issues, the problem is likely:
-        echo  If QuickText still has issues, the problem is likely: >> "!LOGFILE!"
-        echo    - Phone not connected / KDE Connect app not running on phone
-        echo    - Phone not connected / KDE Connect app not running on phone >> "!LOGFILE!"
-        echo    - Phone and PC not on the same Wi-Fi network
-        echo    - Phone and PC not on the same Wi-Fi network >> "!LOGFILE!"
-        echo    - Device not paired in KDE Connect
-        echo    - Device not paired in KDE Connect >> "!LOGFILE!"
-    ) else (
-        echo  [PARTIAL] --version works but --list-devices fails.
-        echo  [PARTIAL] --version works but --list-devices fails. >> "!LOGFILE!"
-        echo.
-        echo. >> "!LOGFILE!"
-        echo  Possible cause: KDE Connect service is not running.
-        echo  Possible cause: KDE Connect service is not running. >> "!LOGFILE!"
-        echo  Fix: Start KDE Connect on the PC, then retry.
-        echo  Fix: Start KDE Connect on the PC, then retry. >> "!LOGFILE!"
-    )
-) else if "!DIAG_FILE_STORE!"=="NOT_FOUND" if "!DIAG_FILE_DESKTOP!"=="NOT_FOUND" (
-    echo  [NOT INSTALLED] KDE Connect CLI executable not found anywhere.
-    echo  [NOT INSTALLED] KDE Connect CLI executable not found anywhere. >> "!LOGFILE!"
-    echo.
-    echo. >> "!LOGFILE!"
-    echo  Fix: Install KDE Connect from the Microsoft Store (recommended)
-    echo  Fix: Install KDE Connect from the Microsoft Store >> "!LOGFILE!"
-    echo  or download from https://kdeconnect.kde.org/download.html
-    echo  or download from https://kdeconnect.kde.org/download.html >> "!LOGFILE!"
-    echo  Then restart the computer.
-    echo  Then restart the computer. >> "!LOGFILE!"
-) else if "!DIAG_WHERE!"=="FAIL" (
-    echo  [PATH ISSUE] CLI executable exists but is NOT in PATH.
-    echo  [PATH ISSUE] CLI executable exists but is NOT in PATH. >> "!LOGFILE!"
-    echo  This is why QuickText shows "CreateProcess Failed, Code: 2"
-    echo  This is why QuickText shows CreateProcess Failed, Code: 2 >> "!LOGFILE!"
-    echo.
-    echo. >> "!LOGFILE!"
-    if "!DIAG_FILE_STORE!"=="FOUND" (
-        echo  Found: Microsoft Store version
-        echo  Found: Microsoft Store version >> "!LOGFILE!"
-        echo  Fix: Add WindowsApps to User PATH:
-        echo  Fix: Add WindowsApps to User PATH: >> "!LOGFILE!"
-        echo    1. Press Win+R, type sysdm.cpl, press Enter
-        echo    1. Press Win+R, type sysdm.cpl, press Enter >> "!LOGFILE!"
-        echo    2. Advanced tab ^> Environment Variables
-        echo    2. Advanced tab, Environment Variables >> "!LOGFILE!"
-        echo    3. Under User variables, edit Path
-        echo    3. Under User variables, edit Path >> "!LOGFILE!"
-        echo    4. Add: %%LOCALAPPDATA%%\Microsoft\WindowsApps
-        echo    4. Add: %%LOCALAPPDATA%%\Microsoft\WindowsApps >> "!LOGFILE!"
-        echo    5. Click OK, then restart computer
-        echo    5. Click OK, then restart computer >> "!LOGFILE!"
-    )
-    if "!DIAG_FILE_DESKTOP!"=="FOUND" (
-        echo  Found: Desktop installer version
-        echo  Found: Desktop installer version >> "!LOGFILE!"
-        echo  Fix: Add KDE Connect bin to PATH:
-        echo  Fix: Add KDE Connect bin to PATH: >> "!LOGFILE!"
-        echo    1. Press Win+R, type sysdm.cpl, press Enter
-        echo    1. Press Win+R, type sysdm.cpl, press Enter >> "!LOGFILE!"
-        echo    2. Advanced tab ^> Environment Variables
-        echo    2. Advanced tab, Environment Variables >> "!LOGFILE!"
-        echo    3. Under User variables, edit Path
-        echo    3. Under User variables, edit Path >> "!LOGFILE!"
-        echo    4. Add: C:\Program Files\KDE Connect\bin
-        echo    4. Add: C:\Program Files\KDE Connect\bin >> "!LOGFILE!"
-        echo    5. Click OK, then restart computer
-        echo    5. Click OK, then restart computer >> "!LOGFILE!"
-    )
-) else (
-    echo  [UNKNOWN] Unexpected combination of results.
-    echo  [UNKNOWN] Unexpected combination of results. >> "!LOGFILE!"
-    echo  Please review the full log details above.
-    echo  Please review the full log details above. >> "!LOGFILE!"
+if "!DIAG_DIRECT_VERSION!"=="PASS" if "!DIAG_DIRECT_LIST!"=="PASS" goto :diag_ok
+if "!DIAG_DIRECT_VERSION!"=="PASS" goto :diag_partial
+if "!DIAG_FILE_STORE!"=="NOT_FOUND" if "!DIAG_FILE_DESKTOP!"=="NOT_FOUND" goto :diag_not_installed
+if "!DIAG_WHERE!"=="FAIL" goto :diag_path_issue
+goto :diag_unknown
+
+:diag_ok
+echo  [OK] Everything works! CLI is installed and accessible.
+echo  [OK] Everything works! CLI is installed and accessible. >> "!LOGFILE!"
+echo.
+echo. >> "!LOGFILE!"
+echo  If QuickText still has issues, the problem is likely:
+echo  If QuickText still has issues, the problem is likely: >> "!LOGFILE!"
+echo    - Phone not connected / KDE Connect app not running on phone
+echo    - Phone not connected / KDE Connect app not running on phone >> "!LOGFILE!"
+echo    - Phone and PC not on the same Wi-Fi network
+echo    - Phone and PC not on the same Wi-Fi network >> "!LOGFILE!"
+echo    - Device not paired in KDE Connect
+echo    - Device not paired in KDE Connect >> "!LOGFILE!"
+goto :diag_done
+
+:diag_partial
+echo  [PARTIAL] --version works but --list-devices fails.
+echo  [PARTIAL] --version works but --list-devices fails. >> "!LOGFILE!"
+echo.
+echo. >> "!LOGFILE!"
+echo  Possible cause: KDE Connect service is not running.
+echo  Possible cause: KDE Connect service is not running. >> "!LOGFILE!"
+echo  Fix: Start KDE Connect on the PC, then retry.
+echo  Fix: Start KDE Connect on the PC, then retry. >> "!LOGFILE!"
+goto :diag_done
+
+:diag_not_installed
+echo  [NOT INSTALLED] KDE Connect CLI executable not found anywhere.
+echo  [NOT INSTALLED] KDE Connect CLI executable not found anywhere. >> "!LOGFILE!"
+echo.
+echo. >> "!LOGFILE!"
+echo  Fix: Install KDE Connect from the Microsoft Store (recommended)
+echo  Fix: Install KDE Connect from the Microsoft Store >> "!LOGFILE!"
+echo  or download from https://kdeconnect.kde.org/download.html
+echo  or download from https://kdeconnect.kde.org/download.html >> "!LOGFILE!"
+echo  Then restart the computer.
+echo  Then restart the computer. >> "!LOGFILE!"
+goto :diag_done
+
+:diag_path_issue
+echo  [PATH ISSUE] CLI executable exists but is NOT in PATH.
+echo  [PATH ISSUE] CLI executable exists but is NOT in PATH. >> "!LOGFILE!"
+echo  This is why QuickText shows "CreateProcess Failed, Code: 2"
+echo  This is why QuickText shows CreateProcess Failed, Code: 2 >> "!LOGFILE!"
+echo.
+echo. >> "!LOGFILE!"
+if "!DIAG_FILE_STORE!"=="FOUND" (
+    echo  Found: Microsoft Store version
+    echo  Found: Microsoft Store version >> "!LOGFILE!"
+    echo  Fix: Add WindowsApps to User PATH:
+    echo  Fix: Add WindowsApps to User PATH: >> "!LOGFILE!"
+    echo    1. Press Win+R, type sysdm.cpl, press Enter
+    echo    1. Press Win+R, type sysdm.cpl, press Enter >> "!LOGFILE!"
+    echo    2. Advanced tab ^> Environment Variables
+    echo    2. Advanced tab, Environment Variables >> "!LOGFILE!"
+    echo    3. Under User variables, edit Path
+    echo    3. Under User variables, edit Path >> "!LOGFILE!"
+    echo    4. Add: %%LOCALAPPDATA%%\Microsoft\WindowsApps
+    echo    4. Add: %%LOCALAPPDATA%%\Microsoft\WindowsApps >> "!LOGFILE!"
+    echo    5. Click OK, then restart computer
+    echo    5. Click OK, then restart computer >> "!LOGFILE!"
 )
+if "!DIAG_FILE_DESKTOP!"=="FOUND" (
+    echo  Found: Desktop installer version
+    echo  Found: Desktop installer version >> "!LOGFILE!"
+    echo  Fix: Add KDE Connect bin to PATH:
+    echo  Fix: Add KDE Connect bin to PATH: >> "!LOGFILE!"
+    echo    1. Press Win+R, type sysdm.cpl, press Enter
+    echo    1. Press Win+R, type sysdm.cpl, press Enter >> "!LOGFILE!"
+    echo    2. Advanced tab ^> Environment Variables
+    echo    2. Advanced tab, Environment Variables >> "!LOGFILE!"
+    echo    3. Under User variables, edit Path
+    echo    3. Under User variables, edit Path >> "!LOGFILE!"
+    echo    4. Add: C:\Program Files\KDE Connect\bin
+    echo    4. Add: C:\Program Files\KDE Connect\bin >> "!LOGFILE!"
+    echo    5. Click OK, then restart computer
+    echo    5. Click OK, then restart computer >> "!LOGFILE!"
+)
+echo.
+echo. >> "!LOGFILE!"
+echo  Alternative: In QuickText Settings, enter the full path to
+echo  Alternative: In QuickText Settings, enter the full path to >> "!LOGFILE!"
+echo  kdeconnect-cli.exe in the KDE Connect Path field. No restart needed.
+echo  kdeconnect-cli.exe in the KDE Connect Path field. No restart needed. >> "!LOGFILE!"
+goto :diag_done
+
+:diag_unknown
+echo  [UNKNOWN] Unexpected combination of results.
+echo  [UNKNOWN] Unexpected combination of results. >> "!LOGFILE!"
+echo  Please review the full log details above.
+echo  Please review the full log details above. >> "!LOGFILE!"
+goto :diag_done
+
+:diag_done
 
 echo.
 echo. >> "!LOGFILE!"

@@ -47,7 +47,7 @@ set "DESKTOP_CLI=%DESKTOP_PATH%\kdeconnect-cli.exe"
 
 REM Initialize log file and show system info
 echo QuickText - KDE Connect Diagnostic > "!LOGFILE!"
-echo Version 1.1 >> "!LOGFILE!"
+echo Version 1.2 >> "!LOGFILE!"
 echo By Sven Bosau >> "!LOGFILE!"
 echo ======================================== >> "!LOGFILE!"
 echo Date: %date% %time% >> "!LOGFILE!"
@@ -62,7 +62,7 @@ cls
 echo.
 echo ========================================================================
 echo                   QuickText - KDE Connect Diagnostic
-echo                              Version 1.1
+echo                              Version 1.2
 echo                            By Sven Bosau
 echo ========================================================================
 echo.

@@ -1,7 +1,7 @@
 @echo off
 REM =====================================================
 REM QuickText - KDE Connect Diagnostic Tool
-REM Version 1.1
+REM Version 1.2
 REM By Sven Bosau
 REM https://pythonandvba.com/quicktext
 REM 
@@ -142,20 +142,22 @@ if exist "!TESTFILE!" (
     echo.
     echo. >> "!LOGFILE!"
 
-    findstr /C:"kdeconnect-cli" "!TESTFILE!" >nul 2>&1
+    REM Check for errors FIRST (error messages also contain 'kdeconnect-cli')
+    findstr /C:"is not recognized" "!TESTFILE!" >nul 2>&1
     if !errorlevel! equ 0 (
-        echo [PASS] Direct --version call works! This is what QuickText uses.
-        echo [PASS] Direct --version call works >> "!LOGFILE!"
+        echo [FAIL] kdeconnect-cli is not recognized when called directly
+        echo [FAIL] Direct call not recognized >> "!LOGFILE!"
+        echo.
+        echo This is the EXACT error QuickText would encounter.
+        echo This is the EXACT error QuickText would encounter. >> "!LOGFILE!"
+        echo The CLI executable is not in the system PATH.
+        echo The CLI executable is not in the system PATH. >> "!LOGFILE!"
     ) else (
-        findstr /C:"is not recognized" "!TESTFILE!" >nul 2>&1
+        REM No error found - check for valid version output
+        findstr /C:"kdeconnect-cli" "!TESTFILE!" >nul 2>&1
         if !errorlevel! equ 0 (
-            echo [FAIL] kdeconnect-cli is not recognized when called directly
-            echo [FAIL] Direct call not recognized >> "!LOGFILE!"
-            echo.
-            echo This is the EXACT error QuickText would encounter.
-            echo This is the EXACT error QuickText would encounter. >> "!LOGFILE!"
-            echo The CLI executable is not in the system PATH.
-            echo The CLI executable is not in the system PATH. >> "!LOGFILE!"
+            echo [PASS] Direct --version call works! This is what QuickText uses.
+            echo [PASS] Direct --version call works >> "!LOGFILE!"
         ) else (
             echo [FAIL] Direct --version call returned unexpected output
             echo [FAIL] Unexpected output from direct call >> "!LOGFILE!"
@@ -195,37 +197,44 @@ if exist "!TESTFILE!" (
     echo.
     echo. >> "!LOGFILE!"
 
-    findstr /C:"device" "!TESTFILE!" >nul 2>&1
+    REM Check for errors FIRST before checking for success
+    findstr /C:"is not recognized" "!TESTFILE!" >nul 2>&1
     if !errorlevel! equ 0 (
-        echo [PASS] Direct --list-devices call works!
-        echo [PASS] Direct --list-devices call works >> "!LOGFILE!"
-        echo.
-
-        REM Count devices
-        findstr /C:"0 devices found" "!TESTFILE!" >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [INFO] 0 devices found - no phone is currently connected
-            echo [INFO] 0 devices found >> "!LOGFILE!"
-        ) else (
-            findstr /C:"1 device" "!TESTFILE!" >nul 2>&1
-            if !errorlevel! equ 0 (
-                echo [INFO] 1 device found and connected
-                echo [INFO] 1 device found >> "!LOGFILE!"
-            ) else (
-                echo [INFO] Multiple devices found
-                echo [INFO] Multiple devices found >> "!LOGFILE!"
-            )
-        )
-
-        REM Check for Qt warning (non-critical)
-        findstr /C:"QEventDispatcherWin32" "!TESTFILE!" >nul 2>&1
-        if !errorlevel! equ 0 (
-            echo [WARNING] Qt warning detected - this is safe to ignore
-            echo [WARNING] Qt warning detected - safe to ignore >> "!LOGFILE!"
-        )
+        echo [FAIL] kdeconnect-cli is not recognized when called directly
+        echo [FAIL] Direct --list-devices not recognized >> "!LOGFILE!"
     ) else (
-        echo [FAIL] Direct --list-devices call did not return device info
-        echo [FAIL] Direct --list-devices failed >> "!LOGFILE!"
+        findstr /C:"device" "!TESTFILE!" >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo [PASS] Direct --list-devices call works!
+            echo [PASS] Direct --list-devices call works >> "!LOGFILE!"
+            echo.
+
+            REM Count devices
+            findstr /C:"0 devices found" "!TESTFILE!" >nul 2>&1
+            if !errorlevel! equ 0 (
+                echo [INFO] 0 devices found - no phone is currently connected
+                echo [INFO] 0 devices found >> "!LOGFILE!"
+            ) else (
+                findstr /C:"1 device" "!TESTFILE!" >nul 2>&1
+                if !errorlevel! equ 0 (
+                    echo [INFO] 1 device found and connected
+                    echo [INFO] 1 device found >> "!LOGFILE!"
+                ) else (
+                    echo [INFO] Multiple devices found
+                    echo [INFO] Multiple devices found >> "!LOGFILE!"
+                )
+            )
+
+            REM Check for Qt warning (non-critical)
+            findstr /C:"QEventDispatcherWin32" "!TESTFILE!" >nul 2>&1
+            if !errorlevel! equ 0 (
+                echo [WARNING] Qt warning detected - this is safe to ignore
+                echo [WARNING] Qt warning detected - safe to ignore >> "!LOGFILE!"
+            )
+        ) else (
+            echo [FAIL] Direct --list-devices call did not return device info
+            echo [FAIL] Direct --list-devices failed >> "!LOGFILE!"
+        )
     )
 ) else (
     echo [FAIL] Direct --list-devices call failed completely (no output)
